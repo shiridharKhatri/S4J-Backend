@@ -111,7 +111,7 @@ routes.post(
         return res.status(401).json({
           success: false,
           type: "user",
-          message: "User not found with given email",
+          message: "User not found with given detail",
         });
       }
 
@@ -264,4 +264,30 @@ routes.delete(
     }
   }
 );
+
+routes.delete("/auth/user/remove/:userId", userAccess, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (String(userId) !== String(req.user.id)) {
+      return res.status(401).json({
+        success: false,
+        message: "You don't have access to take action",
+      });
+    }
+    let user = await User.findById(userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No user found with given id" });
+    }
+    await User.findByIdAndDelete(userId);
+    return res
+      .status(200)
+      .json({ success: true, message: "Account deleted successfully!" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, type: "server", message: error.message });
+  }
+});
 module.exports = routes;
